@@ -1,28 +1,56 @@
-name: CS2 Auto Update
+name: CS2 Real-time Update
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Запускать каждый день в полночь
-  workflow_dispatch: # Позволяет запустить вручную кнопкой
+    - cron: '0 0 * * *' # Обновление раз в сутки
+  workflow_dispatch:
 
 jobs:
-  update-data:
+  update-stats:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Update Data File
+      - name: Fetch Real Data
+        env:
+          API_TOKEN: ${{ secrets.PANDASCORE_TOKEN }}
         run: |
-          # В этом блоке робот обновляет дату в файле
-          DATE=$(date +'%d.%m.%Y')
-          sed -i "s/\"last_updated\": \".*\"/\"last_updated\": \"$DATE\"/" data.json
-          echo "Данные обновлены на дату $DATE"
+          # Запрос списка ТОП-команд CS2
+          curl -g "https://api.pandascore.co/csgo/teams?filter[last_match_status]=finished&sort=-rating&page[size]=10" \
+          -H "Authorization: Bearer $API_TOKEN" > raw_teams.json
+          
+          # Запрос ближайших турниров
+          curl -g "https://api.pandascore.co/csgo/leagues?filter[name]=IEM,Major,ESL&page[size]=5" \
+          -H "Authorization: Bearer $API_TOKEN" > raw_events.json
+
+      - name: Process Data with Python
+        run: |
+          python3 - <<EOF
+          import json
+          from datetime import datetime
+
+          # Читаем то, что прислало API
+          with open('raw_teams.json') as f:
+              raw_teams = json.load(f)
+          with open('raw_events.json') as f:
+              raw_events = json.load(f)
+
+          # Собираем красивый data.json для нашего сайта
+          data = {
+              "last_updated": datetime.now().strftime("%d.%m.%Y %H:%M"),
+              "teams": [{"name": t["name"], "points": int((t.get("rating") or 1) * 1000)} for t in raw_teams],
+              "events": [{"name": e["name"], "date": "2026", "status": "Tier-1", "priority": "high"} for e in raw_events]
+          }
+
+          with open('data.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          EOF
 
       - name: Commit and Push
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "CS2-Bot"
           git add data.json
-          git commit -m "Auto-update: $DATE" || exit 0
+          git commit -m "Auto-update CS2 stats from API" || exit 0
           git push
