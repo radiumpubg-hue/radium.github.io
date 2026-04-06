@@ -1,0 +1,14 @@
+{
+  "last_updated": "07.04.2026",
+  "teams": [
+    {"name": "Team Spirit", "points": 1450},
+    {"name": "NAVI", "points": 1380},
+    {"name": "FaZe Clan", "points": 1210},
+    {"name": "Vitality", "points": 1150},
+    {"name": "MOUZ", "points": 980}
+  ],
+  "events": [
+    {"name": "IEM Chengdu 2026", "date": "Апрель 2026", "status": "VRS-MEDIUM", "priority": "medium"},
+    {"name": "Shanghai Major 2026", "date": "Май 2026", "status": "VRS-HIGH", "priority": "high"}
+  ]
+}
