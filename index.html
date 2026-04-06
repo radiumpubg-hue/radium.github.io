@@ -3,124 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Analytics Hub</title>
+    <title>CS2 Global Analytics</title>
     <style>
-        :root { --gold: #f0b90b; --bg: #0b0e11; --card: #1e2329; --text: #eaecef; }
+        :root { --gold: #f0b90b; --bg: #0b0e11; --card: #161a1e; --text: #eaecef; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: #161a1e; padding: 20px; text-align: center; border-bottom: 2px solid var(--gold); }
-        
-        /* Вкладки */
-        .tabs { display: flex; justify-content: center; background: #161a1e; cursor: pointer; }
-        .tab { padding: 15px 25px; border-bottom: 3px solid transparent; transition: 0.3s; }
-        .tab:hover { background: #2b2f36; }
+        .tabs { display: flex; justify-content: center; background: #161a1e; sticky: top; }
+        .tab { padding: 15px 25px; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab.active { border-color: var(--gold); color: var(--gold); }
-
         .content { max-width: 1000px; margin: 30px auto; padding: 0 20px; display: none; }
         .content.active { display: block; }
-
-        /* Таблица рейтинга */
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2b3139; }
         th { background: #2b3139; color: var(--gold); }
         .pts-input { width: 60px; background: #0b0e11; color: white; border: 1px solid var(--gold); border-radius: 4px; padding: 5px; }
-
-        /* Карточки турниров */
-        .t-card { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid gray; }
-        .high { border-left-color: #f84960; } /* Высокая важность */
-        .medium { border-left-color: var(--gold); }
+        .t-card { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #555; }
+        .high { border-left-color: #f84960; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>CS2 ANALYTICS HUB</h1>
-    <p>Прогнозы, Рейтинги, Турниры</p>
+    <div id="last-update" style="font-size: 0.8rem; color: #848e9c;">Загрузка данных...</div>
 </header>
 
 <div class="tabs">
-    <div class="tab active" onclick="openTab(event, 'vrs')">VRS Предиктор</div>
-    <div class="tab" onclick="openTab(event, 'events')">Календарь турниров</div>
-    <div class="tab" onclick="openTab(event, 'stats')">Скрытые статы</div>
+    <div class="tab active" onclick="openTab(event, 'vrs')">VRS Прогноз</div>
+    <div class="tab" onclick="openTab(event, 'events')">Турниры</div>
+    <div class="tab" onclick="openTab(event, 'stats')">Составы</div>
 </div>
 
 <div id="vrs" class="content active">
-    <h2>Симулятор рейтинга Valve</h2>
-    <p>Изменяйте доп. очки за турнир, чтобы увидеть изменения в топе.</p>
     <table>
-        <thead>
-            <tr>
-                <th>Место</th>
-                <th>Команда</th>
-                <th>Базовые очки</th>
-                <th>Прогноз (+ очков)</th>
-                <th>Итого</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Spirit</td>
-                <td>1340</td>
-                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1340)"></td>
-                <td class="total">1340</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Natus Vincere</td>
-                <td>1210</td>
-                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1210)"></td>
-                <td class="total">1210</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>FaZe Clan</td>
-                <td>1180</td>
-                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1180)"></td>
-                <td class="total">1180</td>
-            </tr>
-        </tbody>
+        <thead><tr><th>#</th><th>Команда</th><th>VRS Очки</th><th>Прогноз (+/-)</th><th>Итого</th></tr></thead>
+        <tbody id="vrs-body"></tbody>
     </table>
 </div>
 
 <div id="events" class="content">
-    <h2>Ближайшие турниры</h2>
-    <div class="t-card high">
-        <h3>Perfect World Shanghai Major 2024</h3>
-        <p>Статус: <b>VRS-HIGH</b> (Макс. очки)</p>
-    </div>
-    <div class="t-card medium">
-        <h3>IEM Chengdu 2024</h3>
-        <p>Статус: <b>VRS-MEDIUM</b> (Средние очки)</p>
-    </div>
+    <div id="event-list"></div>
 </div>
 
 <div id="stats" class="content">
-    <h2>Анализ состава</h2>
-    <p>Здесь можно добавить сравнение среднего возраста и огневой мощи составов.</p>
-    <div style="background:var(--card); padding: 20px; border-radius: 8px; text-align: center;">
-        <h3>Модуль в разработке</h3>
-        <p>Скоро: "Собери свою команду мечты"</p>
+    <div style="text-align:center; padding:50px; background:var(--card); border-radius:10px;">
+        <h3>Сравнение огневой мощи составов</h3>
+        <p>Модуль анализа данных HLTV в разработке.</p>
     </div>
 </div>
 
 <script>
     function openTab(evt, tabName) {
-        var i, content, tabs;
-        content = document.getElementsByClassName("content");
-        for (i = 0; i < content.length; i++) { content[i].className = content[i].className.replace(" active", ""); }
-        tabs = document.getElementsByClassName("tab");
-        for (i = 0; i < tabs.length; i++) { tabs[i].className = tabs[i].className.replace(" active", ""); }
-        document.getElementById(tabName).className += " active";
-        evt.currentTarget.className += " active";
+        let content = document.getElementsByClassName("content");
+        for (let i = 0; i < content.length; i++) content[i].classList.remove("active");
+        let tabs = document.getElementsByClassName("tab");
+        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
     }
 
-    function updateTotal(input, base) {
+    async function loadData() {
+        try {
+            // Добавляем timestamp, чтобы браузер не кешировал старые данные
+            const response = await fetch('data.json?t=' + Date.now());
+            const data = await response.json();
+            
+            document.getElementById('last-update').innerText = "Обновлено: " + data.last_updated;
+
+            // Рендерим таблицу
+            const tbody = document.getElementById('vrs-body');
+            tbody.innerHTML = data.teams.map((team, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><b>${team.name}</b></td>
+                    <td>${team.points}</td>
+                    <td><input type="number" class="pts-input" value="0" onchange="updateRow(this, ${team.points})"></td>
+                    <td class="total-pts">${team.points}</td>
+                </tr>
+            `).join('');
+
+            // Рендерим турниры
+            const evList = document.getElementById('event-list');
+            evList.innerHTML = data.events.map(ev => `
+                <div class="t-card ${ev.priority}">
+                    <h3>${ev.name}</h3>
+                    <p>Дата: ${ev.date} | Важность: <b>${ev.status}</b></p>
+                </div>
+            `).join('');
+
+        } catch (e) { console.error("Ошибка загрузки данных", e); }
+    }
+
+    function updateRow(input, base) {
         const row = input.closest('tr');
-        const totalCell = row.querySelector('.total');
-        const added = parseInt(input.value) || 0;
-        totalCell.innerText = base + added;
+        row.querySelector('.total-pts').innerText = base + (parseInt(input.value) || 0);
     }
-</script>
 
+    loadData();
+</script>
 </body>
 </html>
