@@ -3,44 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Личный Сайт</title>
+    <title>CS Counter - Сравнение игроков</title>
     <style>
-        /* Основные стили для красоты */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; line-height: 1.6; color: #333; background: #f4f4f9; }
-        header { background: #24292e; color: #fff; padding: 2rem 1rem; text-align: center; }
-        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding-top: 20px; padding-bottom: 20px; }
-        h1 { margin-top: 0; }
-        .btn { display: inline-block; background: #2ea44f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; }
-        .btn:hover { background: #2c974b; }
-        footer { text-align: center; padding: 2rem; font-size: 0.9rem; color: #666; }
-        img { max-width: 100%; border-radius: 8px; }
+        :root { --cs-orange: #f89406; --cs-dark: #222; }
+        body { font-family: 'Arial', sans-serif; background: #1b1e21; color: white; margin: 0; text-align: center; }
+        header { background: var(--cs-dark); padding: 20px; border-bottom: 3px solid var(--cs-orange); }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        
+        .selector-area { display: flex; justify-content: space-around; margin-bottom: 30px; gap: 20px; }
+        select { padding: 10px; background: #333; color: white; border: 1px solid var(--cs-orange); border-radius: 5px; width: 45%; }
+
+        .comparison-table { width: 100%; border-collapse: collapse; background: #2a2d32; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid #3e4248; text-align: center; }
+        th { background: #333; color: var(--cs-orange); }
+        
+        .winner { color: #00ff00; font-weight: bold; }
+        .stat-name { font-weight: bold; color: #aaa; }
+        .player-header { font-size: 1.5rem; color: var(--cs-orange); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Привет, я Radium!</h1>
-    <p>Добро пожаловать на мой личный сайт без рекламы</p>
+    <h1>CS Stats Comparer</h1>
+    <p>Данные на основе статистики HLTV</p>
 </header>
 
 <div class="container">
-    <h2>Обо мне</h2>
-    <p>Я создаю этот сайт на GitHub Pages. Это полностью бесплатный хостинг, который позволяет размещать проекты любой сложности.</p>
-    
-    <h2>Мои проекты</h2>
-    <ul>
-        <li>Проект 1: Описание того, чем вы занимаетесь.</li>
-        <li>Проект 2: Еще одна интересная штука.</li>
-    </ul>
+    <div class="selector-area">
+        <select id="player1" onchange="compare()">
+            <option value="zywoo">ZywOo</option>
+            <option value="m0nesy">m0NESY</option>
+            <option value="donk">donk</option>
+        </select>
+        <select id="player2" onchange="compare()">
+            <option value="zywoo">ZywOo</option>
+            <option value="m0nesy" selected>m0NESY</option>
+            <option value="donk">donk</option>
+        </select>
+    </div>
 
-    <h2>Связаться со мной</h2>
-    <p>Вы можете найти меня в социальных сетях или написать в личные сообщения.</p>
-    <a href="#" class="btn">Написать мне</a>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th id="p1-name" class="player-header">Игрок 1</th>
+                <th>Характеристика</th>
+                <th id="p2-name" class="player-header">Игрок 2</th>
+            </tr>
+        </thead>
+        <tbody id="stats-body">
+            </tbody>
+    </table>
 </div>
 
-<footer>
-    &copy; 2026 Создано с помощью GitHub Pages
-</footer>
+<script>
+    // База данных (сюда ты можешь вписывать новых игроков)
+    const players = {
+        zywoo: { name: "ZywOo", rating: 1.30, dpr: 0.59, impact: 1.35, adr: 82.5 },
+        m0nesy: { name: "m0NESY", rating: 1.28, dpr: 0.61, impact: 1.29, adr: 78.4 },
+        donk: { name: "donk", rating: 1.45, dpr: 0.65, impact: 1.70, adr: 95.2 }
+    };
+
+    function compare() {
+        const p1Key = document.getElementById('player1').value;
+        const p2Key = document.getElementById('player2').value;
+        
+        const p1 = players[p1Key];
+        const p2 = players[p2Key];
+
+        document.getElementById('p1-name').innerText = p1.name;
+        document.getElementById('p2-name').innerText = p2.name;
+
+        const stats = [
+            { label: "Rating 2.0", key: "rating" },
+            { label: "DPR (Смертей за раунд)", key: "dpr", lowerBetter: true },
+            { label: "Impact", key: "impact" },
+            { label: "ADR", key: "adr" }
+        ];
+
+        let html = "";
+        stats.forEach(stat => {
+            const val1 = p1[stat.key];
+            const val2 = p2[stat.key];
+            
+            let class1 = "", class2 = "";
+            if (stat.lowerBetter) {
+                if (val1 < val2) class1 = "winner"; else if (val2 < val1) class2 = "winner";
+            } else {
+                if (val1 > val2) class1 = "winner"; else if (val2 > val1) class2 = "winner";
+            }
+
+            html += `<tr>
+                <td class="${class1}">${val1}</td>
+                <td class="stat-name">${stat.label}</td>
+                <td class="${class2}">${val2}</td>
+            </tr>`;
+        });
+
+        document.getElementById('stats-body').innerHTML = html;
+    }
+
+    // Запуск при загрузке
+    compare();
+</script>
 
 </body>
 </html>
