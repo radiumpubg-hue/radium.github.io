@@ -2,64 +2,123 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>VRS Predictor - CS2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Analytics Hub</title>
     <style>
-        body { font-family: sans-serif; background: #0b0e11; color: white; padding: 20px; }
-        .card { background: #161a1e; border: 1px solid #2b2f36; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; }
-        select, input { width: 100%; padding: 10px; margin: 10px 0; background: #2b2f36; border: none; color: white; border-radius: 5px; }
-        .result-box { margin-top: 20px; padding: 15px; background: #1e2329; border-left: 4px solid #f0b90b; }
-        .btn-calc { background: #f0b90b; color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        .target { color: #848e9c; font-size: 0.9rem; margin-top: 10px; }
+        :root { --gold: #f0b90b; --bg: #0b0e11; --card: #1e2329; --text: #eaecef; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        header { background: #161a1e; padding: 20px; text-align: center; border-bottom: 2px solid var(--gold); }
+        
+        /* Вкладки */
+        .tabs { display: flex; justify-content: center; background: #161a1e; cursor: pointer; }
+        .tab { padding: 15px 25px; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab:hover { background: #2b2f36; }
+        .tab.active { border-color: var(--gold); color: var(--gold); }
+
+        .content { max-width: 1000px; margin: 30px auto; padding: 0 20px; display: none; }
+        .content.active { display: block; }
+
+        /* Таблица рейтинга */
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2b3139; }
+        th { background: #2b3139; color: var(--gold); }
+        .pts-input { width: 60px; background: #0b0e11; color: white; border: 1px solid var(--gold); border-radius: 4px; padding: 5px; }
+
+        /* Карточки турниров */
+        .t-card { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid gray; }
+        .high { border-left-color: #f84960; } /* Высокая важность */
+        .medium { border-left-color: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Прогноз рейтинга Valve (VRS)</h2>
-    <p>Выбери команду и ее будущие результаты:</p>
+<header>
+    <h1>CS2 ANALYTICS HUB</h1>
+    <p>Прогнозы, Рейтинги, Турниры</p>
+</header>
 
-    <label>Команда:</label>
-    <select id="teamSelect">
-        <option value="1200">Spirit (1200 pts)</option>
-        <option value="1150">FaZe (1150 pts)</option>
-        <option value="980">Vitality (980 pts)</option>
-        <option value="850">Virtus.pro (850 pts)</option>
-    </select>
+<div class="tabs">
+    <div class="tab active" onclick="openTab(event, 'vrs')">VRS Предиктор</div>
+    <div class="tab" onclick="openTab(event, 'events')">Календарь турниров</div>
+    <div class="tab" onclick="openTab(event, 'stats')">Скрытые статы</div>
+</div>
 
-    <label>Результат на ближайшем Tier-1 (например, IEM):</label>
-    <select id="tournamentResult">
-        <option value="0">Не участвует (0 pts)</option>
-        <option value="400">Победа (1 место) — +400 pts</option>
-        <option value="250">Финал (2 место) — +250 pts</option>
-        <option value="150">Полуфинал (3-4 место) — +150 pts</option>
-        <option value="50">Групповой этап — +50 pts</option>
-    </select>
+<div id="vrs" class="content active">
+    <h2>Симулятор рейтинга Valve</h2>
+    <p>Изменяйте доп. очки за турнир, чтобы увидеть изменения в топе.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Место</th>
+                <th>Команда</th>
+                <th>Базовые очки</th>
+                <th>Прогноз (+ очков)</th>
+                <th>Итого</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Spirit</td>
+                <td>1340</td>
+                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1340)"></td>
+                <td class="total">1340</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Natus Vincere</td>
+                <td>1210</td>
+                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1210)"></td>
+                <td class="total">1210</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>FaZe Clan</td>
+                <td>1180</td>
+                <td><input type="number" class="pts-input" value="0" onchange="updateTotal(this, 1180)"></td>
+                <td class="total">1180</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
-    <button class="btn-calc" onclick="calculate()">Рассчитать шансы</button>
+<div id="events" class="content">
+    <h2>Ближайшие турниры</h2>
+    <div class="t-card high">
+        <h3>Perfect World Shanghai Major 2024</h3>
+        <p>Статус: <b>VRS-HIGH</b> (Макс. очки)</p>
+    </div>
+    <div class="t-card medium">
+        <h3>IEM Chengdu 2024</h3>
+        <p>Статус: <b>VRS-MEDIUM</b> (Средние очки)</p>
+    </div>
+</div>
 
-    <div id="result" class="result-box" style="display:none;">
-        <div id="totalPoints"></div>
-        <div id="verdict"></div>
-        <div class="target">Примерный порог инвайта на Мейджор: ~1050 pts</div>
+<div id="stats" class="content">
+    <h2>Анализ состава</h2>
+    <p>Здесь можно добавить сравнение среднего возраста и огневой мощи составов.</p>
+    <div style="background:var(--card); padding: 20px; border-radius: 8px; text-align: center;">
+        <h3>Модуль в разработке</h3>
+        <p>Скоро: "Собери свою команду мечты"</p>
     </div>
 </div>
 
 <script>
-    function calculate() {
-        const basePoints = parseInt(document.getElementById('teamSelect').value);
-        const addedPoints = parseInt(document.getElementById('tournamentResult').value);
-        const total = basePoints + addedPoints;
-        const threshold = 1050; // Условный порог топ-16 мира
+    function openTab(evt, tabName) {
+        var i, content, tabs;
+        content = document.getElementsByClassName("content");
+        for (i = 0; i < content.length; i++) { content[i].className = content[i].className.replace(" active", ""); }
+        tabs = document.getElementsByClassName("tab");
+        for (i = 0; i < tabs.length; i++) { tabs[i].className = tabs[i].className.replace(" active", ""); }
+        document.getElementById(tabName).className += " active";
+        evt.currentTarget.className += " active";
+    }
 
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('totalPoints').innerHTML = `<h3>Итого: ${total} очков</h3>`;
-
-        if (total >= threshold) {
-            document.getElementById('verdict').innerHTML = "<span style='color:#02c076'>✅ Высокий шанс:</span> Команда проходит в топ-16 по рейтингу.";
-        } else {
-            const diff = threshold - total;
-            document.getElementById('verdict').innerHTML = `<span style='color:#f84960'>❌ Недостаточно:</span> Нужно еще минимум ${diff} очков для инвайта.`;
-        }
+    function updateTotal(input, base) {
+        const row = input.closest('tr');
+        const totalCell = row.querySelector('.total');
+        const added = parseInt(input.value) || 0;
+        totalCell.innerText = base + added;
     }
 </script>
 
