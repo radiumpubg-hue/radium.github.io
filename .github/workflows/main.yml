@@ -1,0 +1,28 @@
+name: CS2 Auto Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Запускать каждый день в полночь
+  workflow_dispatch: # Позволяет запустить вручную кнопкой
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Update Data File
+        run: |
+          # В этом блоке робот обновляет дату в файле
+          DATE=$(date +'%d.%m.%Y')
+          sed -i "s/\"last_updated\": \".*\"/\"last_updated\": \"$DATE\"/" data.json
+          echo "Данные обновлены на дату $DATE"
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data.json
+          git commit -m "Auto-update: $DATE" || exit 0
+          git push
