@@ -2,109 +2,65 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS Counter - Сравнение игроков</title>
+    <title>VRS Predictor - CS2</title>
     <style>
-        :root { --cs-orange: #f89406; --cs-dark: #222; }
-        body { font-family: 'Arial', sans-serif; background: #1b1e21; color: white; margin: 0; text-align: center; }
-        header { background: var(--cs-dark); padding: 20px; border-bottom: 3px solid var(--cs-orange); }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
-        
-        .selector-area { display: flex; justify-content: space-around; margin-bottom: 30px; gap: 20px; }
-        select { padding: 10px; background: #333; color: white; border: 1px solid var(--cs-orange); border-radius: 5px; width: 45%; }
-
-        .comparison-table { width: 100%; border-collapse: collapse; background: #2a2d32; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; border-bottom: 1px solid #3e4248; text-align: center; }
-        th { background: #333; color: var(--cs-orange); }
-        
-        .winner { color: #00ff00; font-weight: bold; }
-        .stat-name { font-weight: bold; color: #aaa; }
-        .player-header { font-size: 1.5rem; color: var(--cs-orange); }
+        body { font-family: sans-serif; background: #0b0e11; color: white; padding: 20px; }
+        .card { background: #161a1e; border: 1px solid #2b2f36; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; }
+        select, input { width: 100%; padding: 10px; margin: 10px 0; background: #2b2f36; border: none; color: white; border-radius: 5px; }
+        .result-box { margin-top: 20px; padding: 15px; background: #1e2329; border-left: 4px solid #f0b90b; }
+        .btn-calc { background: #f0b90b; color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .target { color: #848e9c; font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>CS Stats Comparer</h1>
-    <p>Данные на основе статистики HLTV</p>
-</header>
+<div class="card">
+    <h2>Прогноз рейтинга Valve (VRS)</h2>
+    <p>Выбери команду и ее будущие результаты:</p>
 
-<div class="container">
-    <div class="selector-area">
-        <select id="player1" onchange="compare()">
-            <option value="zywoo">ZywOo</option>
-            <option value="m0nesy">m0NESY</option>
-            <option value="donk">donk</option>
-        </select>
-        <select id="player2" onchange="compare()">
-            <option value="zywoo">ZywOo</option>
-            <option value="m0nesy" selected>m0NESY</option>
-            <option value="donk">donk</option>
-        </select>
+    <label>Команда:</label>
+    <select id="teamSelect">
+        <option value="1200">Spirit (1200 pts)</option>
+        <option value="1150">FaZe (1150 pts)</option>
+        <option value="980">Vitality (980 pts)</option>
+        <option value="850">Virtus.pro (850 pts)</option>
+    </select>
+
+    <label>Результат на ближайшем Tier-1 (например, IEM):</label>
+    <select id="tournamentResult">
+        <option value="0">Не участвует (0 pts)</option>
+        <option value="400">Победа (1 место) — +400 pts</option>
+        <option value="250">Финал (2 место) — +250 pts</option>
+        <option value="150">Полуфинал (3-4 место) — +150 pts</option>
+        <option value="50">Групповой этап — +50 pts</option>
+    </select>
+
+    <button class="btn-calc" onclick="calculate()">Рассчитать шансы</button>
+
+    <div id="result" class="result-box" style="display:none;">
+        <div id="totalPoints"></div>
+        <div id="verdict"></div>
+        <div class="target">Примерный порог инвайта на Мейджор: ~1050 pts</div>
     </div>
-
-    <table class="comparison-table">
-        <thead>
-            <tr>
-                <th id="p1-name" class="player-header">Игрок 1</th>
-                <th>Характеристика</th>
-                <th id="p2-name" class="player-header">Игрок 2</th>
-            </tr>
-        </thead>
-        <tbody id="stats-body">
-            </tbody>
-    </table>
 </div>
 
 <script>
-    // База данных (сюда ты можешь вписывать новых игроков)
-    const players = {
-        zywoo: { name: "ZywOo", rating: 1.30, dpr: 0.59, impact: 1.35, adr: 82.5 },
-        m0nesy: { name: "m0NESY", rating: 1.28, dpr: 0.61, impact: 1.29, adr: 78.4 },
-        donk: { name: "donk", rating: 1.45, dpr: 0.65, impact: 1.70, adr: 95.2 }
-    };
+    function calculate() {
+        const basePoints = parseInt(document.getElementById('teamSelect').value);
+        const addedPoints = parseInt(document.getElementById('tournamentResult').value);
+        const total = basePoints + addedPoints;
+        const threshold = 1050; // Условный порог топ-16 мира
 
-    function compare() {
-        const p1Key = document.getElementById('player1').value;
-        const p2Key = document.getElementById('player2').value;
-        
-        const p1 = players[p1Key];
-        const p2 = players[p2Key];
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('totalPoints').innerHTML = `<h3>Итого: ${total} очков</h3>`;
 
-        document.getElementById('p1-name').innerText = p1.name;
-        document.getElementById('p2-name').innerText = p2.name;
-
-        const stats = [
-            { label: "Rating 2.0", key: "rating" },
-            { label: "DPR (Смертей за раунд)", key: "dpr", lowerBetter: true },
-            { label: "Impact", key: "impact" },
-            { label: "ADR", key: "adr" }
-        ];
-
-        let html = "";
-        stats.forEach(stat => {
-            const val1 = p1[stat.key];
-            const val2 = p2[stat.key];
-            
-            let class1 = "", class2 = "";
-            if (stat.lowerBetter) {
-                if (val1 < val2) class1 = "winner"; else if (val2 < val1) class2 = "winner";
-            } else {
-                if (val1 > val2) class1 = "winner"; else if (val2 > val1) class2 = "winner";
-            }
-
-            html += `<tr>
-                <td class="${class1}">${val1}</td>
-                <td class="stat-name">${stat.label}</td>
-                <td class="${class2}">${val2}</td>
-            </tr>`;
-        });
-
-        document.getElementById('stats-body').innerHTML = html;
+        if (total >= threshold) {
+            document.getElementById('verdict').innerHTML = "<span style='color:#02c076'>✅ Высокий шанс:</span> Команда проходит в топ-16 по рейтингу.";
+        } else {
+            const diff = threshold - total;
+            document.getElementById('verdict').innerHTML = `<span style='color:#f84960'>❌ Недостаточно:</span> Нужно еще минимум ${diff} очков для инвайта.`;
+        }
     }
-
-    // Запуск при загрузке
-    compare();
 </script>
 
 </body>
